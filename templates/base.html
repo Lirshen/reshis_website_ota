@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Решись Авиа — прогноз спроса и продаж авиабилетов.">
+  <meta name="theme-color" content="#293f4e">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}Решись Авиа — прогноз спроса{% endblock %}</title>
+  <script>try{if(localStorage.getItem("reshis-avia-theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a href="{{ url_for('index') }}" class="brand" aria-label="Решись Авиа — на главную">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M8 25.8 31.5 9.5 25.4 32l-6.8-9.4L8 25.8Z" fill="currentColor"/><path d="m18.6 22.6 12.9-13.1" stroke="#0B1D2A" stroke-width="2"/></svg></span>
+          <span class="brand-type">РЕШИСЬ<span>АВИА</span><small>ПРОГНОЗИРОВАНИЕ СПРОСА</small></span>
+        </a>
+        <div class="nav-actions">
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Включить тёмную тему" aria-pressed="false" title="Включить тёмную тему">
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.3 15.7A8.5 8.5 0 0 1 8.3 3.7 8.5 8.5 0 1 0 20.3 15.7Z"/></svg>
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </button>
+          {% if current_user %}
+            <span class="user-chip" title="{{ current_user['email'] }}">{{ current_user['name'] }}</span>
+            <a href="{{ url_for('history') }}" class="nav-text">История</a>
+            <form action="{{ url_for('logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="nav-text nav-button" type="submit">Выйти</button></form>
+          {% else %}
+            <a href="{{ url_for('login') }}" class="nav-text">Войти</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="toast-stack" role="status" aria-live="polite">{% for category, message in messages %}<div class="toast toast-{{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+  <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-intro">
+  <div class="container intro-inner">
+    <div>
+      <h1>Прогноз спроса на рейсы</h1>
+      <p>Маршруты из Москвы · 01.06–01.07.2026</p>
+    </div>
+  </div>
+</section>
+<section class="workspace container" id="forecast">
+  <div class="workspace-grid">
+    <aside class="panel form-panel">
+      <div class="panel-heading"><h2>Параметры рейса</h2></div>
+      <form id="forecast-form" novalidate>
+        <div class="field">
+          <label for="origin">Откуда</label>
+          <input id="origin" value="Москва" readonly aria-readonly="true">
+        </div>
+        <div class="field">
+          <label for="route">Куда</label>
+          <select id="route" name="route" required>
+            {% for route in routes %}
+            <option value="{{ route.route }}" data-base-price="{{ route.base_price|int }}" data-min-price="{{ route.price_min|int }}" data-max-price="{{ route.price_max|int }}">{{ route.name.split('—')[-1].strip() }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="flight-date">Дата вылета</label>
+          <input id="flight-date" name="date" type="date" min="{{ min_date }}" max="{{ max_date }}" value="2026-06-12" required>
+        </div>
+        <div class="field field-last">
+          <label for="ticket-price">Цена билета, ₽</label>
+          <div class="price-input-wrap"><input id="ticket-price" name="price" type="number" min="0" step="1" inputmode="numeric" required><span class="price-currency">₽</span></div>
+          <div class="field-note" id="price-limits">—</div>
+        </div>
+        <div id="form-error" class="form-error" role="alert" hidden></div>
+      </form>
+    </aside>
+    <section class="panel result-panel" aria-labelledby="result-title">
+      <div class="panel-heading result-heading"><div><h2 id="result-title">Результат прогноза</h2><p id="result-subtitle">—</p></div></div>
+      <div class="metrics-grid" aria-live="polite">
+        <div class="metric metric-accent"><div class="metric-label">Прогноз продаж</div><div class="metric-value" id="metric-sales">—</div><div class="metric-unit">билетов</div></div>
+        <div class="metric"><div class="metric-label">Расчётный спрос</div><div class="metric-value" id="metric-demand">—</div><div class="metric-unit">пассажиров</div></div>
+        <div class="metric"><div class="metric-label">Вместимость</div><div class="metric-value" id="metric-seats">—</div><div class="metric-unit">мест</div></div>
+      </div>
+      <div class="occupancy-section">
+        <div class="occupancy-head"><span>Загрузка рейса</span><strong id="metric-load">—</strong></div>
+        <div class="occupancy-track" role="progressbar" aria-label="Прогноз загрузки" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="occupancy-fill" id="occupancy-fill"></div></div>
+        <p class="remaining-line">Ожидается свободных мест: <strong id="metric-remaining">—</strong></p>
+      </div>
+      <p class="result-note">Медианный прогноз · P50</p>
+    </section>
+  </div>
+  <section class="panel chart-panel" id="distribution" aria-labelledby="chart-title">
+    <div class="chart-header">
+      <div><h2 id="chart-title">Распределение спроса</h2><p>Девять сценариев · P10–P90</p></div>
+      <div class="chart-legend"><span><i class="legend-dot"></i> Спрос</span><span><i class="legend-line"></i> Медиана</span><span><i class="legend-dash"></i> Вместимость</span></div>
+    </div>
+    <div id="chart-container" class="chart-container"><div class="chart-placeholder">Загрузка прогноза…</div></div>
+    <p class="chart-note" id="capacity-note">Расчёт по девяти квантилям спроса.</p>
+  </section>
+  <section class="panel chart-panel price-panel" id="price-trend" aria-labelledby="price-title">
+    <div class="chart-header">
+      <div><h2 id="price-title">Прогноз цен по датам</h2><p>Расчётная цена билета · 01.06–01.07.2026</p></div>
+      <div class="chart-legend"><span><i class="legend-price-range"></i> Диапазон P10–P90</span><span><i class="legend-price-median"></i> Медиана P50</span><span><i class="legend-selected"></i> Выбранная дата</span></div>
+    </div>
+    <div class="price-summary" aria-live="polite">
+      <div><span>Медианная цена</span><strong id="price-median">—</strong></div>
+      <div><span>Диапазон P10–P90</span><strong id="price-range">—</strong></div>
+      <div><span>Разброс</span><strong id="price-spread">—</strong></div>
+    </div>
+    <div id="price-chart-container" class="chart-container price-chart-container"><div class="chart-placeholder">Загрузка ценового прогноза…</div></div>
+    <p class="chart-note">Слева от выбранной даты — более ранние дни прогноза. Затенённые области показывают разброс модельных цен, а не фактическую историю продаж.</p>
+  </section>
+  <section class="panel scenario-panel" id="scenarios" aria-labelledby="scenarios-title">
+    <div class="chart-header">
+      <div><h2 id="scenarios-title">Прогноз по 9 сценариям</h2><p>Для выбранной цены билета и даты вылета</p></div>
+    </div>
+    <div class="table-scroll">
+      <table class="scenario-table forecast-scenarios">
+        <thead><tr><th scope="col">Сценарий</th><th scope="col">Спрос, чел.</th><th scope="col">Продажи, билетов</th><th scope="col">Расчётная цена, ₽</th></tr></thead>
+        <tbody id="scenario-rows"><tr><td colspan="4" class="empty-table">Загрузка сценариев…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>{% endblock %}
